@@ -1,8 +1,11 @@
 tensorflow
 keras-hub
+tokenizers
+sentencepiece
 pandas
 numpy
 matplotlib
 seaborn
 scikit-learn
 jupyter
+opencv-python-headless
