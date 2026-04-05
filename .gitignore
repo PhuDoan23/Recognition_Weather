@@ -3,3 +3,6 @@ dataset/*
 *.md
 .DS_Store
 models/*.h5
+.venv/
+
+*png
