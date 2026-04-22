@@ -187,8 +187,8 @@ If you find this work useful, please cite our paper:
 ```bibtex
 @inproceedings{doan2026a2wnet,
   title     = {A2WNet: Adaptive Attention Weather Network with Supervised Contrastive Learning},
-  author    = {Doan, Phu and [Co-authors]},
-  booktitle = {Proceedings of [Conference Name 2026]},
+  author    = {Nhat-Tung Le, Doan Phu, Phu Le, and Thai-Thinh Dang},
+  booktitle = {Proceedings of [ICDAR 2026]},
   year      = {2026}
 }
 ```
