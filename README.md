@@ -1,112 +1,216 @@
-# Weather Image Recognition
+# A2WNet: Adaptive Attention Weather Network
 
-A comprehensive deep learning project for classifying weather conditions from images using state-of-the-art Convolutional Neural Networks (CNNs) and Vision Transformers (ViT). This repository implements, compares, and fuses various architectures to achieve high-accuracy weather recognition.
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
+[![TensorFlow 2.21](https://img.shields.io/badge/TensorFlow-2.21-orange.svg)](https://www.tensorflow.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-## 🌦️ Project Overview
+> **A2WNet** is a hybrid CNN–Transformer architecture for weather image recognition. It fuses local spatial features from VGG16 with global context from ViT-B/16 through a **dynamic gating mechanism** and trains with **supervised contrastive loss** to produce discriminative weather embeddings.
+>
+> 📄 *Accepted at [Conference Name 2026]*
 
-This project aims to automate the identification of 11 different weather categories. It explores the transition from classical CNN architectures to modern Transformer-based approaches and culminates in **Hybrid Fusion Models** that leverage both local spatial features (CNNs) and global context (Transformers).
-
-### Dataset Summary
-- **Total Images:** 6,863
-- **Classes (11):** `dew`, `fogsmog`, `frost`, `glaze`, `hail`, `lightning`, `rain`, `rainbow`, `rime`, `sandstorm`, `snow`.
-- **Split:** 64% Train / 16% Validation / 20% Test (Stratified).
-- **Augmentation:** Rotation, zoom, shifts, shear, and horizontal flips.
 
 ---
 
-## 🏗️ Implemented Architectures
+## Key Results
 
-### 1. Classical CNNs
-- **AlexNet:** Built from scratch with Batch Normalization and Dropout.
-- **VGG16:** Pretrained on ImageNet with a custom dense head.
-- **ResNet50:** Residual learning framework for better gradient flow.
-- **MobileNetV2:** Lightweight model optimized for mobile/edge deployment.
+All models trained with **5 random seeds** on the [Weather Phenomenon Database (WEAPD)](https://doi.org/10.7910/DVN/M8JQCR) (6,863 images, 11 classes). Results show **mean ± std** test accuracy:
 
-### 2. Vision Transformer (ViT)
-- **ViT-B/16:** Pretrained on ImageNet-21k. Processes images as a sequence of 196 patches using self-attention.
-
-### 3. Hybrid Models (Advanced)
-- **Hybrid VGG-ViT:** A dual-branch architecture that concatenates features from VGG16 and ViT-B/16 before classification.
-- **Hybrid Gated:** Implements a gating mechanism to dynamically weigh features from different branches.
-- **Contrastive Hybrid:** Uses contrastive loss to learn more discriminative weather features.
-
----
-
-## 📈 Performance Comparison
-
-The models were trained on an NVIDIA RTX 5070 Ti (16GB VRAM).
-
-| Model | Test Accuracy | Test Loss | Params | Key Strength |
+| Model | Test Accuracy | Std | Parameters | Key Strength |
 |---|---|---|---|---|
-| **ViT-B/16** | **93.37%** | **0.266** | 86M | Highest accuracy via ImageNet-21k pretraining |
-| **VGG16** | 91.77% | 0.306 | 138M | Robust feature extraction |
-| **ResNet50** | 90.68% | 0.409 | 25M | Best accuracy-to-parameter ratio |
-| **MobileNetV2** | 85.36% | 0.438 | 3.4M | Extremely lightweight and fast |
-| **AlexNet** | 75.75% | 0.706 | 60M | Baseline for training from scratch |
+| **A2WNet (Ours)** | **92.34%** | ±0.40% | ~225M | Highest consistency, contrastive separation |
+| ViT-B/16 | 92.29% | ±0.50% | 86M | Strong global features |
+| HybridGated | 92.00% | ±0.72% | ~225M | Dynamic feature fusion |
+| VGG16 | 90.40% | ±0.51% | 138M | Robust local features |
+| ResNet50 | 90.68% | — | 25M | Best accuracy-to-parameter ratio |
+| MobileNetV2 | 85.36% | — | 3.4M | Lightest for edge deployment |
+| AlexNet | 75.75% | — | 60M | Baseline (trained from scratch) |
 
-*Note: Hybrid models typically match or exceed ViT-B/16 performance by fusing complementary features.*
+### ImageNet Ablation Study
+
+| Comparison | Δ Mean Accuracy | p-value |
+|---|---|---|
+| VGG16 (ImageNet) vs VGG16 (scratch) | +23.03% | < 0.001 |
+| A2WNet (ImageNet) vs A2WNet (scratch) | +27.12% | < 0.001 |
+
+*Transfer learning provides a statistically significant boost (paired t-test, n=5 seeds).*
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
+
 - Python 3.10+
-- NVIDIA GPU (Recommended for training)
+- NVIDIA GPU with ≥ 12 GB VRAM (recommended for hybrid models)
+- CUDA 12.x + cuDNN
 
 ### Installation
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/your-username/Recognition_Weather.git
-   cd Recognition_Weather
-   ```
-2. Install dependencies:
-   ```bash
-   pip install -r requirement.txt
-   ```
 
-### Usage
+```bash
+# 1. Clone the repository
+git clone https://github.com/PhuDoan23/Recognition_Weather.git
+cd Recognition_Weather
 
-#### Training
-- **Train All Models (Sequential):**
-  ```bash
-  python train_all.py
-  ```
-- **Train a Specific Model (e.g., Hybrid VGG-ViT):**
-  ```bash
-  python src/Hybrid_VGG_ViT.py
-  ```
+# 2. Create a virtual environment
+python -m venv .venv
+source .venv/bin/activate
 
-#### Evaluation
-Explore the results and confusion matrices in the `notebook/` directory:
-- `hybrid_model_evaluation.ipynb`: Detailed metrics for the fusion models.
-- `loading_analysis_model.ipynb`: General model analysis and visualization.
+# 3. Install dependencies
+pip install -r requirements.txt
+```
+
+### Dataset Setup
+
+Download the [Weather Phenomenon Database (WEAPD)](https://doi.org/10.7910/DVN/M8JQCR) and organize it as:
+
+```
+dataset/
+├── dew/
+├── fogsmog/
+├── frost/
+├── glaze/
+├── hail/
+├── lightning/
+├── rain/
+├── rainbow/
+├── rime/
+├── sandstorm/
+└── snow/
+```
+
+> **Note:** The `dataset/` directory is excluded from version control via `.gitignore`.
 
 ---
 
-## 📂 Project Structure
+## Reproducing Results
 
-```text
-.
-├── dataset/                # Raw weather images organized by class
-├── src/                    # Model definitions and specialized training scripts
-│   ├── AlexNet.py
-│   ├── ViT.py
-│   ├── Hybrid_VGG_ViT.py   # Dual-branch fusion model
-│   └── ...
-├── models/                 # Saved .h5 weights for best performing models
-├── logs/                   # Training logs for each model
-├── Img/                    # Visualization results (Confusion Matrices, Grad-CAM)
-├── plots/                  # Training history plots
-├── train_all.py            # Master script for sequential training
-└── utils.py                # Data generators and shared helper functions
+### Train All Baseline Models (Sequential)
+
+```bash
+python scripts/train_all.py
+```
+
+This trains VGG16 → AlexNet → ResNet50 → MobileNetV2 → ViT one after another, logging results to `logs/`.
+
+### Multi-Seed Experiment (4 models × 5 seeds)
+
+```bash
+# Run all 20 training runs
+python scripts/train_seeds.py
+
+# Run for a specific model only
+python scripts/train_seeds.py --model a2wnet
+```
+
+Results are saved to `results/runs/{model}_seed{seed}.json`.
+
+### Ablation Study (No ImageNet Weights)
+
+```bash
+# Run all 10 ablation runs
+python scripts/train_ablation.py
+```
+
+### Statistical Analysis
+
+```bash
+# Pretrained models only
+python scripts/analyze_seeds.py
+
+# Pretrained + ablation comparison
+python scripts/analyze_seeds.py --all
+```
+
+### Visualization
+
+```bash
+# t-SNE comparison of latent spaces
+python src/plot_tsne.py
+
+# Grad-CAM heatmaps (VGG16 vs A2WNet)
+python src/test_gradcam.py --image <path_to_image> --output figures/gradcam_output.png
 ```
 
 ---
 
-## 🛠️ Infrastructure & Frameworks
-- **Hardware:** NVIDIA RTX 5070 Ti (Blackwell Architecture)
-- **Frameworks:** TensorFlow 2.21, Keras 3.13, Keras-Hub
-- **Optimization:** AdamW with Weight Decay, Early Stopping, and Learning Rate Scheduling.
+## Project Structure
+
+```
+Recognition_Weather/
+├── src/                          # Model architectures
+│   ├── __init__.py               # Package exports
+│   ├── vgg16.py                  # VGG16 classifier
+│   ├── alexnet.py                # AlexNet (from scratch)
+│   ├── resnet.py                 # ResNet50 classifier
+│   ├── mobilenet.py              # MobileNetV2 classifier
+│   ├── vit.py                    # ViT-B/16 classifier
+│   ├── hybrid_vgg_vit.py         # Dual-branch hard concat fusion
+│   ├── hybrid_gated.py           # Dynamic gating fusion
+│   ├── hybrid_contrastive.py     # A2WNet: gating + contrastive loss
+│   ├── plot_tsne.py              # t-SNE visualization script
+│   └── test_gradcam.py           # Grad-CAM comparison script
+├── scripts/                      # Training & analysis scripts
+│   ├── train_all.py              # Sequential baseline training
+│   ├── train_one.py              # Single model + seed training
+│   ├── train_seeds.py            # Multi-seed orchestrator
+│   ├── train_ablation.py         # Ablation orchestrator
+│   ├── train_ablation_one.py     # Single ablation run
+│   └── analyze_seeds.py          # Statistical analysis
+├── notebooks/                    # Jupyter notebooks
+│   ├── hybrid_model_evaluation.ipynb
+│   └── loading_analysis_model.ipynb
+├── figures/                      # Generated visualizations
+├── results/                      # Experiment results (JSON + CSV)
+│   ├── runs/                     # Per-seed results
+│   ├── ablation_runs/            # Ablation per-seed results
+│   ├── seed_summary.csv          # Aggregate statistics
+│   └── all_summary.csv           # Full comparison table
+├── models/                       # Saved model weights (.h5)
+├── docs/                         # Documentation
+│   └── DIARY.md                  # Development diary
+├── utils.py                      # Shared data loading & plotting
+├── requirements.txt              # Python dependencies
+├── LICENSE                       # MIT License
+└── README.md
+```
 
 ---
+
+## Infrastructure
+
+| Component | Detail |
+|---|---|
+| **GPU** | NVIDIA RTX 5070 Ti (16 GB VRAM) |
+| **Framework** | TensorFlow 2.21, Keras 3.13, Keras-Hub 0.26 |
+| **Optimizer** | AdamW (weight decay = 1e-4) |
+| **Training** | Two-phase: frozen backbone → fine-tune top blocks |
+| **Callbacks** | EarlyStopping + ModelCheckpoint (save_weights_only) |
+
+---
+
+## Citation
+
+If you find this work useful, please cite our paper:
+
+```bibtex
+@inproceedings{doan2026a2wnet,
+  title     = {A2WNet: Adaptive Attention Weather Network with Supervised Contrastive Learning},
+  author    = {Doan, Phu and [Co-authors]},
+  booktitle = {Proceedings of [Conference Name 2026]},
+  year      = {2026}
+}
+```
+
+---
+
+## License
+
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+
+---
+
+## Acknowledgements
+
+- [Weather Phenomenon Database (WEAPD)](https://doi.org/10.7910/DVN/M8JQCR) by Xiao, H. (2021), Harvard Dataverse, V1
+- [ViT-B/16 ImageNet-21k](https://keras.io/api/keras_hub/) pretrained weights via Keras Hub
+- [VGG16](https://arxiv.org/abs/1409.1556) pretrained on ImageNet via Keras Applications

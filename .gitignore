@@ -1,8 +1,35 @@
-#Dataset
-dataset/*
-*.md
-.DS_Store
-models/*.h5
-.venv/
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
 
-*png
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project-specific (large files not for git)
+dataset/
+models/*.h5
+results/weights/
+results/ablation_weights/
+logs/
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# R history
+.Rhistory

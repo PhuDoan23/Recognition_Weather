@@ -1,5 +1,5 @@
-tensorflow
-keras-hub
+tensorflow>=2.21
+keras-hub>=0.26
 tokenizers
 sentencepiece
 pandas
@@ -7,5 +7,6 @@ numpy
 matplotlib
 seaborn
 scikit-learn
+scipy
 jupyter
 opencv-python-headless
