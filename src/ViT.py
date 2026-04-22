@@ -26,48 +26,6 @@ def load_dataset(dataset_dir):
                 })
     return pd.DataFrame(records)
 
-dataset_dir = os.path.join(os.path.dirname(__file__), '..', 'dataset')
-df = load_dataset(dataset_dir)
-
-train_df, test_df = train_test_split(
-    df, test_size=0.2, stratify=df['label'], random_state=42
-)
-
-NUM_CLASSES = len(df['label'].unique())
-
-# ViT-B/16 from ImageNet expects inputs scaled to [0, 1]
-def rescale(x):
-    return x / 255.0
-
-train_datagen = ImageDataGenerator(
-    preprocessing_function=rescale,
-    validation_split=0.2,
-    rotation_range=30,
-    zoom_range=0.15,
-    width_shift_range=0.2,
-    height_shift_range=0.2,
-    shear_range=0.15,
-    horizontal_flip=True,
-    fill_mode='nearest'
-)
-test_datagen = ImageDataGenerator(preprocessing_function=rescale)
-
-train_gen_ViT = train_datagen.flow_from_dataframe(
-    dataframe=train_df, x_col='filename', y_col='label',
-    target_size=(224, 224), class_mode='categorical',
-    batch_size=32, shuffle=True, seed=0, subset='training'
-)
-valid_gen_ViT = train_datagen.flow_from_dataframe(
-    dataframe=train_df, x_col='filename', y_col='label',
-    target_size=(224, 224), class_mode='categorical',
-    batch_size=32, shuffle=False, seed=0, subset='validation'
-)
-test_gen_ViT = test_datagen.flow_from_dataframe(
-    dataframe=test_df, x_col='filename', y_col='label',
-    target_size=(224, 224), color_mode='rgb',
-    class_mode='categorical', batch_size=32, shuffle=False, verbose=0
-)
-
 
 # ── Model definition ───────────────────────────────────────────────────────────
 #
@@ -131,55 +89,95 @@ class ViTClassifier(Model):
         return config
 
 
-# ── Callbacks ──────────────────────────────────────────────────────────────────
+if __name__ == '__main__':
+    dataset_dir = os.path.join(os.path.dirname(__file__), '..', 'dataset')
+    df = load_dataset(dataset_dir)
 
-callbacks = [
-    EarlyStopping(monitor='val_loss', patience=7, mode='min',
-                  restore_best_weights=True),
-    ModelCheckpoint(filepath='best_vit.weights.h5', monitor='val_loss',
-                    save_best_only=True, mode='min', save_weights_only=True)
-]
+    train_df, test_df = train_test_split(
+        df, test_size=0.2, stratify=df['label'], random_state=42
+    )
 
+    NUM_CLASSES = len(df['label'].unique())
 
-# ── Phase 1: train head only, backbone frozen ──────────────────────────────────
+    # ViT-B/16 from ImageNet expects inputs scaled to [0, 1]
+    def rescale(x):
+        return x / 255.0
 
-model_vit = ViTClassifier(num_classes=NUM_CLASSES, freeze_base=True)
-model_vit.compile(
-    optimizer=AdamW(learning_rate=1e-3, weight_decay=1e-4),
-    loss='categorical_crossentropy',
-    metrics=['accuracy']
-)
+    train_datagen = ImageDataGenerator(
+        preprocessing_function=rescale,
+        validation_split=0.2,
+        rotation_range=30,
+        zoom_range=0.15,
+        width_shift_range=0.2,
+        height_shift_range=0.2,
+        shear_range=0.15,
+        horizontal_flip=True,
+        fill_mode='nearest'
+    )
+    test_datagen = ImageDataGenerator(preprocessing_function=rescale)
 
-print("=== ViT Phase 1: Training classification head ===")
-history_phase1 = model_vit.fit(
-    train_gen_ViT,
-    validation_data=valid_gen_ViT,
-    epochs=20,
-    callbacks=callbacks,
-    verbose=1
-)
+    train_gen_ViT = train_datagen.flow_from_dataframe(
+        dataframe=train_df, x_col='filename', y_col='label',
+        target_size=(224, 224), class_mode='categorical',
+        batch_size=32, shuffle=True, seed=0, subset='training'
+    )
+    valid_gen_ViT = train_datagen.flow_from_dataframe(
+        dataframe=train_df, x_col='filename', y_col='label',
+        target_size=(224, 224), class_mode='categorical',
+        batch_size=32, shuffle=False, seed=0, subset='validation'
+    )
+    test_gen_ViT = test_datagen.flow_from_dataframe(
+        dataframe=test_df, x_col='filename', y_col='label',
+        target_size=(224, 224), color_mode='rgb',
+        class_mode='categorical', batch_size=32, shuffle=False, verbose=0
+    )
 
+    # ── Callbacks ─────────────────────────────────────────────────────────────
 
-# ── Phase 2: unfreeze last 4 transformer blocks ────────────────────────────────
+    callbacks = [
+        EarlyStopping(monitor='val_loss', patience=7, mode='min',
+                      restore_best_weights=True),
+        ModelCheckpoint(filepath='best_vit.weights.h5', monitor='val_loss',
+                        save_best_only=True, mode='min', save_weights_only=True)
+    ]
 
-model_vit.unfreeze_last_blocks(num_blocks=4)
-model_vit.compile(
-    optimizer=AdamW(learning_rate=1e-5, weight_decay=1e-4),
-    loss='categorical_crossentropy',
-    metrics=['accuracy']
-)
+    # ── Phase 1: train head only, backbone frozen ──────────────────────────────
 
-print("=== ViT Phase 2: Fine-tuning last 4 transformer blocks ===")
-history_phase2 = model_vit.fit(
-    train_gen_ViT,
-    validation_data=valid_gen_ViT,
-    epochs=30,
-    callbacks=callbacks,
-    verbose=1
-)
+    model_vit = ViTClassifier(num_classes=NUM_CLASSES, freeze_base=True)
+    model_vit.compile(
+        optimizer=AdamW(learning_rate=1e-3, weight_decay=1e-4),
+        loss='categorical_crossentropy',
+        metrics=['accuracy']
+    )
 
+    print("=== ViT Phase 1: Training classification head ===")
+    history_phase1 = model_vit.fit(
+        train_gen_ViT,
+        validation_data=valid_gen_ViT,
+        epochs=20,
+        callbacks=callbacks,
+        verbose=1
+    )
 
-# ── Evaluation ─────────────────────────────────────────────────────────────────
+    # ── Phase 2: unfreeze last 4 transformer blocks ────────────────────────────
 
-plot_history(history_phase2, test_gen_ViT, train_gen_ViT, model_vit, test_df)
-result_ViT = result_test(test_gen_ViT, model_vit)
+    model_vit.unfreeze_last_blocks(num_blocks=4)
+    model_vit.compile(
+        optimizer=AdamW(learning_rate=1e-5, weight_decay=1e-4),
+        loss='categorical_crossentropy',
+        metrics=['accuracy']
+    )
+
+    print("=== ViT Phase 2: Fine-tuning last 4 transformer blocks ===")
+    history_phase2 = model_vit.fit(
+        train_gen_ViT,
+        validation_data=valid_gen_ViT,
+        epochs=30,
+        callbacks=callbacks,
+        verbose=1
+    )
+
+    # ── Evaluation ────────────────────────────────────────────────────────────
+
+    plot_history(history_phase2, test_gen_ViT, train_gen_ViT, model_vit, test_df)
+    result_ViT = result_test(test_gen_ViT, model_vit)

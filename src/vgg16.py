@@ -28,17 +28,6 @@ def load_dataset(dataset_dir):
                 })
     return pd.DataFrame(records)
 
-dataset_dir = os.path.join(os.path.dirname(__file__), '..', 'dataset')
-df = load_dataset(dataset_dir)
-
-train_df, test_df = train_test_split(
-    df, test_size=0.2, stratify=df['label'], random_state=42
-)
-
-train_gen_VGG, valid_gen_VGG, test_gen_VGG = gen(preprocess_input, train_df, test_df)
-
-NUM_CLASSES = len(df['label'].unique())
-
 
 # ── Model definition ───────────────────────────────────────────────────────────
 
@@ -77,55 +66,64 @@ class VGG16Classifier(Model):
             layer.trainable = False
 
 
-# ── Callbacks ──────────────────────────────────────────────────────────────────
+if __name__ == '__main__':
+    dataset_dir = os.path.join(os.path.dirname(__file__), '..', 'dataset')
+    df = load_dataset(dataset_dir)
 
-callbacks = [
-    EarlyStopping(monitor='val_loss', patience=7, mode='min',
-                  restore_best_weights=True),
-    ModelCheckpoint(filepath='best_vgg16.weights.h5', monitor='val_loss',
-                    save_best_only=True, mode='min', save_weights_only=True)
-]
+    train_df, test_df = train_test_split(
+        df, test_size=0.2, stratify=df['label'], random_state=42
+    )
 
+    train_gen_VGG, valid_gen_VGG, test_gen_VGG = gen(preprocess_input, train_df, test_df)
 
-# ── Phase 1: train head only ───────────────────────────────────────────────────
+    NUM_CLASSES = len(df['label'].unique())
 
-model_vgg = VGG16Classifier(num_classes=NUM_CLASSES, freeze_base=True)
-model_vgg.compile(
-    optimizer=Adam(1e-3),
-    loss='categorical_crossentropy',
-    metrics=['accuracy']
-)
+    # ── Callbacks ─────────────────────────────────────────────────────────────
 
-print("=== Phase 1: Training classification head ===")
-history_phase1 = model_vgg.fit(
-    train_gen_VGG,
-    validation_data=valid_gen_VGG,
-    epochs=20,
-    callbacks=callbacks,
-    verbose=1
-)
+    callbacks = [
+        EarlyStopping(monitor='val_loss', patience=7, mode='min',
+                      restore_best_weights=True),
+        ModelCheckpoint(filepath='best_vgg16.weights.h5', monitor='val_loss',
+                        save_best_only=True, mode='min', save_weights_only=True)
+    ]
 
+    # ── Phase 1: train head only ───────────────────────────────────────────────
 
-# ── Phase 2: fine-tune last 2 conv blocks ─────────────────────────────────────
+    model_vgg = VGG16Classifier(num_classes=NUM_CLASSES, freeze_base=True)
+    model_vgg.compile(
+        optimizer=Adam(1e-3),
+        loss='categorical_crossentropy',
+        metrics=['accuracy']
+    )
 
-model_vgg.unfreeze_top_blocks(num_blocks=2)
-model_vgg.compile(
-    optimizer=Adam(1e-5),
-    loss='categorical_crossentropy',
-    metrics=['accuracy']
-)
+    print("=== Phase 1: Training classification head ===")
+    history_phase1 = model_vgg.fit(
+        train_gen_VGG,
+        validation_data=valid_gen_VGG,
+        epochs=20,
+        callbacks=callbacks,
+        verbose=1
+    )
 
-print("=== Phase 2: Fine-tuning top conv blocks ===")
-history_phase2 = model_vgg.fit(
-    train_gen_VGG,
-    validation_data=valid_gen_VGG,
-    epochs=30,
-    callbacks=callbacks,
-    verbose=1
-)
+    # ── Phase 2: fine-tune last 2 conv blocks ─────────────────────────────────
 
+    model_vgg.unfreeze_top_blocks(num_blocks=2)
+    model_vgg.compile(
+        optimizer=Adam(1e-5),
+        loss='categorical_crossentropy',
+        metrics=['accuracy']
+    )
 
-# ── Evaluation ─────────────────────────────────────────────────────────────────
+    print("=== Phase 2: Fine-tuning top conv blocks ===")
+    history_phase2 = model_vgg.fit(
+        train_gen_VGG,
+        validation_data=valid_gen_VGG,
+        epochs=30,
+        callbacks=callbacks,
+        verbose=1
+    )
 
-plot_history(history_phase2, test_gen_VGG, train_gen_VGG, model_vgg, test_df)
-result_VGG16 = result_test(test_gen_VGG, model_vgg)
+    # ── Evaluation ────────────────────────────────────────────────────────────
+
+    plot_history(history_phase2, test_gen_VGG, train_gen_VGG, model_vgg, test_df)
+    result_VGG16 = result_test(test_gen_VGG, model_vgg)
