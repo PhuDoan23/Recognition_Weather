@@ -160,14 +160,7 @@ Recognition_Weather/
 │   ├── hybrid_model_evaluation.ipynb
 │   └── loading_analysis_model.ipynb
 ├── figures/                      # Generated visualizations
-├── results/                      # Experiment results (JSON + CSV)
-│   ├── runs/                     # Per-seed results
-│   ├── ablation_runs/            # Ablation per-seed results
-│   ├── seed_summary.csv          # Aggregate statistics
-│   └── all_summary.csv           # Full comparison table
 ├── models/                       # Saved model weights (.h5)
-├── docs/                         # Documentation
-│   └── DIARY.md                  # Development diary
 ├── utils.py                      # Shared data loading & plotting
 ├── requirements.txt              # Python dependencies
 ├── LICENSE                       # MIT License
