@@ -116,7 +116,7 @@ weights_path = os.path.join(PROJECT_ROOT, 'results', 'weights',
 if MODEL_NAME == 'vgg16':
     from tensorflow.keras.applications.vgg16 import preprocess_input
     from tensorflow.keras.optimizers import Adam
-    from vgg16 import VGG16Classifier
+    from baselines.vgg16 import VGG16Classifier
 
     train_gen, valid_gen, test_gen = make_generators(preprocess_input, SEED)
 
@@ -153,7 +153,7 @@ if MODEL_NAME == 'vgg16':
 elif MODEL_NAME == 'vit':
     import keras_hub
     from tensorflow.keras.optimizers import AdamW
-    from vit import ViTClassifier
+    from baselines.vit import ViTClassifier
 
     def rescale(x): return x / 255.0
     train_gen, valid_gen, test_gen = make_generators(rescale, SEED)
@@ -190,7 +190,7 @@ elif MODEL_NAME == 'vit':
 
 elif MODEL_NAME == 'hybrid_gated':
     from tensorflow.keras.optimizers import AdamW
-    from hybrid_gated import HybridGatedModel
+    from contributions.hybrid_gated import HybridGatedModel
 
     def raw_identity(x): return x
     train_gen, valid_gen, test_gen = make_generators(raw_identity, SEED)
@@ -227,7 +227,7 @@ elif MODEL_NAME == 'hybrid_gated':
 
 elif MODEL_NAME == 'a2wnet':
     from tensorflow.keras.optimizers import AdamW
-    from hybrid_contrastive import (SupervisedContrastiveLoss,
+    from contributions.hybrid_contrastive import (SupervisedContrastiveLoss,
                                     A2WNet_Contrastive,
                                     multi_loss_generator)
 

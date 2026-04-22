@@ -139,14 +139,16 @@ python src/test_gradcam.py --image <path_to_image> --output figures/gradcam_outp
 Recognition_Weather/
 ├── src/                          # Model architectures
 │   ├── __init__.py               # Package exports
-│   ├── vgg16.py                  # VGG16 classifier
-│   ├── alexnet.py                # AlexNet (from scratch)
-│   ├── resnet.py                 # ResNet50 classifier
-│   ├── mobilenet.py              # MobileNetV2 classifier
-│   ├── vit.py                    # ViT-B/16 classifier
-│   ├── hybrid_vgg_vit.py         # Dual-branch hard concat fusion
-│   ├── hybrid_gated.py           # Dynamic gating fusion
-│   ├── hybrid_contrastive.py     # A2WNet: gating + contrastive loss
+│   ├── baselines/                # Standard architectures
+│   │   ├── vgg16.py
+│   │   ├── alexnet.py
+│   │   ├── resnet.py
+│   │   ├── mobilenet.py
+│   │   └── vit.py
+│   ├── contributions/            # Hybrid proposed models
+│   │   ├── hybrid_vgg_vit.py     # Dual-branch hard concat fusion
+│   │   ├── hybrid_gated.py       # Dynamic gating fusion
+│   │   └── hybrid_contrastive.py # A2WNet: gating + contrastive loss
 │   ├── plot_tsne.py              # t-SNE visualization script
 │   └── test_gradcam.py           # Grad-CAM comparison script
 ├── scripts/                      # Training & analysis scripts

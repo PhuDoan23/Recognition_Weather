@@ -179,7 +179,7 @@ if MODEL_NAME == 'vgg16_scratch':
 elif MODEL_NAME == 'a2wnet_scratch':
     import keras_hub
     from tensorflow.keras.optimizers import AdamW
-    from hybrid_contrastive import SupervisedContrastiveLoss, multi_loss_generator
+    from contributions.hybrid_contrastive import SupervisedContrastiveLoss, multi_loss_generator
 
     class A2WNet_Scratch(Model):
         """A2WNet_Contrastive with all weights randomly initialized."""

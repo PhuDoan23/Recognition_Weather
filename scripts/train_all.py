@@ -21,11 +21,11 @@ os.makedirs(LOG_DIR, exist_ok=True)
 os.makedirs(PLOTS_DIR, exist_ok=True)
 
 MODELS = [
-    ('VGG16',     'src/vgg16.py'),
-    ('AlexNet',   'src/alexnet.py'),
-    ('ResNet50',  'src/resnet.py'),
-    ('MobileNet', 'src/mobilenet.py'),
-    ('ViT',       'src/vit.py'),
+    ('VGG16',     'src/baselines/vgg16.py'),
+    ('AlexNet',   'src/baselines/alexnet.py'),
+    ('ResNet50',  'src/baselines/resnet.py'),
+    ('MobileNet', 'src/baselines/mobilenet.py'),
+    ('ViT',       'src/baselines/vit.py'),
 ]
 
 env = os.environ.copy()

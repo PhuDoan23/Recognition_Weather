@@ -31,9 +31,9 @@ from sklearn.preprocessing import normalize
 # Make src/ importable when running from project root
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from hybrid_vgg_vit    import HybridVGGViT,         load_dataset, raw_identity
-from hybrid_gated        import HybridGatedModel
-from hybrid_contrastive import A2WNet_Contrastive
+from contributions.hybrid_vgg_vit    import HybridVGGViT,         load_dataset, raw_identity
+from contributions.hybrid_gated      import HybridGatedModel
+from contributions.hybrid_contrastive import A2WNet_Contrastive
 from utils import gen
 
 # ── Paths ──────────────────────────────────────────────────────────────────────
